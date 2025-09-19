@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nolzark Website</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body, html {
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            height: 100%;
+            overflow: auto;
+            background-color: black;
+            color: white;
+        }
+
+        a:link, a:visited, a:hover, a:focus, a:hover, a:active {
+            color: white;
+            background-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-bottom: 3px solid white;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        .nav h2 {
+            margin: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .mobile-menu-icon {
+            display: none;
+            cursor: pointer;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        #scene-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .content {
+            margin-top: 70px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 70px);
+        }
+
+        .center {
+            margin: 0 auto;
+            width: 90%;
+            max-width: 600px;
+            border: 3px solid white;
+            padding: 10px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .github-link {
+            margin-top: 20px;
+        }
+
+        .github-link svg {
+            fill: white;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                background-color: rgba(0, 0, 0, 0.9);
+                position: absolute;
+                top: 50px;
+                left: 0;
+                width: 100%;
+                border-top: 3px solid white;
+            }
+
+            .nav-links a {
+                padding: 15px;
+                text-align: center;
+                border-bottom: 1px solid white;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .mobile-menu-icon {
+                display: block;
+                padding: 10px;
+                position: relative;
+                z-index: 1001;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <h2><a href="index.html">nlzrk</a></h2>
+        <div class="mobile-menu-icon" onclick="toggleMenu()">☰</div>
+        <div class="nav-links" id="navLinks">
+            <a href="index.html">home</a>
+            <a href="resume.pdf">resume / cv</a>
+            <a href="bible.html">holy bible</a>
+            <a href="secret.html">secret</a>
+        </div>
+    </div>
+
+    <div id="scene-container"></div>
+    
+    <div class="content">
+   
+            <h1>blake fahey</h1>
+            <p>58 Currans hill drive</p>
+            
+      
+        
+    </div>
+
+<script>
+     function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        init();
+</script>
+
+
+    
+</body>
+</html>

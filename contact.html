@@ -1,356 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nolzark Website</title>
-
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap">
-    </head>
-
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-    body,
-      html {
-        overflow: hidden;
-        font-family: 'JetBrains Mono', monospace;
-        
-      }
-
-     
-
-
-
-      a:link {
-  color: black;
-  background-color: transparent;
-  text-decoration: none;
-}
-      
-a { color: black } 
-
-a:visited { text-decoration: none; color:black; }
-a:hover { text-decoration: none; color:black; }
-a:focus { text-decoration: none; color:black; }
-a:hover, a:active { text-decoration: none; color:black }
-
-
-
-
-      a,
-      button,
-      input {
-        font-weight: var(--font-weight-body);
-      }
-    
-      .content {
-        display: grid;
-        columns: 1;
-        row-gap: 24px;
-        justify-items: left;
-
-        
-      }
-
-      .center {
-          margin-left: 300px;
-          margin-top: 290px;
-          top: 50px;
-          left: 50px;
-          width: 50%;
-          border: 3px solid black;
-          padding: 10px;
-          text-align: left;
-          position: absolute;
-      }
-    
-      .scene {
-        margin-top: 300px;
-      }
-
-
-
-      .nav {
-        padding-inline: 15px;
-        padding-top: 15px;
-        min-width: 220px;
-        text-align: center;
-        position: relative;
-      }
-    
-      .nav-item {
-        width: 18px;
-        fill: var(--color-secondary);
-        margin-inline: 10px;
-      }
-    
-      .link-title-wrapper {
-        margin-inline: 20px;
-      }
-    
-      a:hover > .link-title-wrapper {
-        background-color: var(--color-text);
-        color: var(--color-body);
-      }
-    
-      .nav-item:hover {
-        background-color: transparent;
-        fill: var(--color-text);
-      }
-    
-      .icon-list {
-        display: inline-flex;
-        margin-bottom: 2px;
-      }
-    
-      .menu-wrapper {
-        border: 3px solid black;
-        display: flex;
-        flex-direction: column;
-        line-height: 2.2;
-        text-align: left;
-        padding-inline: 15px;
-        margin-block: 10px;
-      }
-    
-      .sub-wrapper {
-        width: 224px;
-      }
-    
-      #mainmenu canvas {
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        margin: auto;
-      }
-    
-      #mainmenu__content {
-        transition: opacity 0.4s;
-      }</style>
-
-
-
-  <body>
-    
-    
-
-    
-    <div class="brand-background child-center">
-  
-      <div class="content">
-        
-        <style data-shopify="">.logo_3D_wrapper {
-        width: 200px;
-        height: 200px;
-        position: relative;
-      }
-    
-      #logo-3D-canvas {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-    
-    
-    
-        
-    
-    
-    
-      .sub-base {
-        display: flex;
-        position: relative;
-        flex-direction: column;
-      }
-    
-      .sub-input-wrapper {
-        display: flex;
-        width: 100%;
-      }
-    
-      .sub-button {
-        width: 30px;
-        padding: 3px;
-        stroke: var(--color-secondary);
-        flex-shrink: 0;
-      }
-    
-      .sub-button:hover {
-        background-color: var(--color-secondary);
-        stroke: var(--color-text);
-      }
-      .form__message {
-        position: relative;
-        background-color: black;
-        transition: opacity 0.5s ease-in-out;
-      }
-    
-      .form__message > span {
-        position: absolute;
-        top: -18px;
-        inset-inline: 0;
-        text-align: center;
-      }
-    
-      .form__error {
-        color: #ef2917;
-      }
-    
-      .form__success {
-        color: #3c763d;
-      }
-    
-      .fade-animation {
-        animation: fade 3s ease-in-out forwards;
-      }
-    
-      @keyframes fade {
-        0% {
-          opacity: 0;
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            height: 100%;
         }
-    
-        10% {
-          opacity: 1;
+        #scene-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
         }
-    
-        90% {
-          opacity: 1;
+        .content {
+            position: relative;
+            z-index: 1;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-        100% {
-          opacity: 0;
+        .menu-wrapper {
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid white;
+            padding: 20px;
+            margin-top: 20px;
         }
-      }
-
-
-
-
-
-
-      
+        a {
+            color: white;
+            text-decoration: none;
+        }
+        a:hover > .link-title-wrapper {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .nav-item {
+            width: 24px;
+            fill: white;
+            margin-top: 10px;
+        }
     </style>
-    
-
-    
-    
-
+</head>
+<body>
+    <div id="scene-container"></div>
 
 
- <div class="scene">
+
+<a class="nav-item" href="index.html" title="Go to Home"> 
+ <h2>email: hunterbalderson@nlzrk.net</h2>
+</a>
 
 
-    <div class="center">
-
-
-    <center>
-      <h1>Contact</h1>
-    </center>
-      
-      <p>
-        
-Email: hunterbalderson@gmail.com 
- 
-
-      </p>
-
-      
-      
-     
-     
-   
 
 
     
+    <script>
+        let scene, camera, renderer, cube;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+        let mouseX = 0;
+        let mouseY = 0;
 
-</div>
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('scene-container').appendChild(renderer.domElement);
 
+            const geometry = new THREE.BoxGeometry(3, 3, 3);
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load('me.PNG');
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+            cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
 
+            camera.position.z = 5;
 
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            window.addEventListener('resize', onWindowResize, false);
 
+            animate();
+        }
 
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - window.innerWidth / 2) / 100;
+            mouseY = (event.clientY - window.innerHeight / 2) / 100;
+        }
 
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
 
+        function animate() {
+            requestAnimationFrame(animate);
 
-        <div id="mainmenu" class="nav blurdrop base-border">
-          <div id="mainmenu__content">
-            <div class="menu-wrapper">
-              
-              
+            targetRotationY += (mouseX - targetRotationY) * 0.05;
+            targetRotationX += (mouseY - targetRotationX) * 0.05;
 
-              <center>
-              <h2>nlzrk</h2>  
-              </center>
+            cube.rotation.y += 0.5 * (targetRotationY - cube.rotation.y);
+            cube.rotation.x += 0.5 * (targetRotationX - cube.rotation.x);
 
+            renderer.render(scene, camera);
+        }
 
-              <a href="index.html">
-                <span class="link-title-wrapper">
-                  home
-                </span>
-              </a>
-            
-          
-              <a href="resume.pdf">
-                <span class="link-title-wrapper">
-                  resume / cv
-                </span>
-              </a>
-             
-            
-          
-            
-              
-            
-          
-            
-              
-            
-          
-            
-              <a href="about.html">
-                <span class="link-title-wrapper">
-                  about me
-                </span>
-              </a>
-            
-          
-            
-              <a href="contact.html">
-                <span class="link-title-wrapper">
-                  contact
-                </span>
-              </a>
-            
-          
-            
-             
-            
-          
-            
-              
-                </br>
-                
-              
-            </div>
-            <br>
-           
-  
-  </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-   
-  </div>
-
-
-    
-  </body>
+        init();
+    </script>
+</body>
 </html>
 
-
 <!--
-  Get a life lol - Nolzark dev
+  If youre this far I feel bad for u - Nolzark dev
  -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
