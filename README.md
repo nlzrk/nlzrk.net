@@ -7,5 +7,6 @@ to-do list:
 - new page ideas [x]
 - debloat [x]
 - create an images bin []
+- add ebird embeds []
 
 
