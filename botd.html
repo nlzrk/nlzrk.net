@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="birb.png">
     <title>Bird of the Day</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -121,6 +120,25 @@
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
+        .bird-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 1px solid #555;
+        }
+        .no-image {
+            width: 100%;
+            height: 200px;
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #555;
+        }
     </style>
 </head>
 <body>
@@ -155,7 +173,7 @@
 
             const geometry = new THREE.BoxGeometry(3, 3, 3);
             const textureLoader = new THREE.TextureLoader();
-            const texture = textureLoader.load('birb.png');
+            const texture = textureLoader.load('steel.JPG');
             const material = new THREE.MeshBasicMaterial({ map: texture });
             cube = new THREE.Mesh(geometry, material);
             scene.add(cube);
@@ -216,13 +234,13 @@
                         headers: { 'X-eBirdApiToken': API_KEY }
                     });
                     const fallbackObs = await fallbackResponse.json();
-                    displayBird(fallbackObs[0], false);
+                    await displayBird(fallbackObs[0], false);
                 } else {
                     // Pick a deterministic "bird of the day" based on today's date
                     const today = new Date().toDateString();
                     const dayIndex = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
                     const birdIndex = dayIndex % observations.length;
-                    displayBird(observations[birdIndex], true);
+                    await displayBird(observations[birdIndex], true);
                 }
                 
             } catch (error) {
@@ -231,12 +249,35 @@
             }
         }
 
-        function displayBird(bird, isNotable) {
+        async function displayBird(bird, isNotable) {
             const date = new Date(bird.obsDt);
             const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             
+            // Fetch image from Macaulay Library (eBird's media partner)
+            let imageHtml = '<div class="no-image">NO IMAGE AVAILABLE</div>';
+            let imageUrl = null;
+            try {
+                const mediaResponse = await fetch(`https://search.macaulaylibrary.org/api/v1/search?taxonCode=${bird.speciesCode}&mediaType=p&sort=rating_rank_desc&count=1`, {
+                    headers: { 'X-eBirdApiToken': API_KEY }
+                });
+                
+                if (mediaResponse.ok) {
+                    const mediaData = await mediaResponse.json();
+                    if (mediaData.results && mediaData.results.content && mediaData.results.content.length > 0) {
+                        imageUrl = mediaData.results.content[0].mediaUrl;
+                        imageHtml = `<img src="${imageUrl}" alt="${bird.comName}" class="bird-image">`;
+                        
+                        // Update cube texture with bird image
+                        updateCubeTexture(imageUrl);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading image:', error);
+            }
+            
             const content = `
                 ${isNotable ? '<div class="notable-badge">NOTABLE</div>' : ''}
+                ${imageHtml}
                 <div class="bird-name">${bird.comName}</div>
                 <div class="scientific-name">${bird.sciName || ''}</div>
                 
@@ -263,6 +304,14 @@
             `;
             
             document.getElementById('content').innerHTML = content;
+        }
+        
+        function updateCubeTexture(imageUrl) {
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(imageUrl, (texture) => {
+                cube.material.map = texture;
+                cube.material.needsUpdate = true;
+            });
         }
         
         loadBirdOfTheDay();
