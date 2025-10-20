@@ -5,16 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bird of the Day</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        body {
+        body, html {
             margin: 0;
-            padding: 20px;
-            background: black;
+            padding: 0;
+            overflow: hidden;
             font-family: 'JetBrains Mono', monospace;
+            height: 100%;
+        }
+        #scene-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            padding: 20px;
         }
         .bird-widget {
             background: rgba(0, 0, 0, 0.7);
@@ -39,12 +54,12 @@
         }
         .scientific-name {
             font-size: 12px;
-            color: #888;
+            color: #aaa;
             font-style: italic;
             margin-bottom: 15px;
         }
         .bird-details {
-            border-top: 1px solid #333;
+            border-top: 1px solid #555;
             padding-top: 15px;
             margin-top: 15px;
         }
@@ -55,7 +70,7 @@
             font-size: 12px;
         }
         .detail-label {
-            color: #888;
+            color: #aaa;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -65,7 +80,7 @@
         .widget-footer {
             margin-top: 15px;
             padding-top: 10px;
-            border-top: 1px solid #333;
+            border-top: 1px solid #555;
             font-size: 10px;
             text-align: right;
         }
@@ -79,7 +94,7 @@
         .home-button {
             margin-bottom: 15px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #555;
         }
         .home-button a {
             color: white;
@@ -108,15 +123,75 @@
     </style>
 </head>
 <body>
-    <div class="bird-widget">
-        <div class="home-button">
-            <a href="birds.html">← HOME</a>
+    <div id="scene-container"></div>
+    
+    <div class="content">
+        <div class="bird-widget">
+            <div class="home-button">
+                <a href="birds.html">← HOME</a>
+            </div>
+            
+            <div class="widget-header">Bird of the Day</div>
+            
+            <div id="content" class="loading">Loading...</div>
         </div>
-        
-        <div class="widget-header">Bird of the Day</div>
-        
-        <div id="content" class="loading">Loading...</div>
     </div>
+
+    <script>
+        let scene, camera, renderer, cube;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+        let mouseX = 0;
+        let mouseY = 0;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setClearColor(0x000000, 1);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('scene-container').appendChild(renderer.domElement);
+
+            const geometry = new THREE.BoxGeometry(3, 3, 3);
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load('steel.JPG');
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+            cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            camera.position.z = 5;
+
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            window.addEventListener('resize', onWindowResize, false);
+
+            animate();
+        }
+
+        function onDocumentMouseMove(event) {
+            mouseX = (event.clientX - window.innerWidth / 2) / 100;
+            mouseY = (event.clientY - window.innerHeight / 2) / 100;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetRotationY += (mouseX - targetRotationY) * 0.05;
+            targetRotationX += (mouseY - targetRotationX) * 0.05;
+
+            cube.rotation.y += 0.5 * (targetRotationY - cube.rotation.y);
+            cube.rotation.x += 0.5 * (targetRotationX - cube.rotation.x);
+
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
 
     <script>
         const API_KEY = 'oaph6u3goa9s';
@@ -190,61 +265,6 @@
         }
         
         loadBirdOfTheDay();
-    </script>
-
-       <script>
-        let scene, camera, renderer, cube;
-        let targetRotationX = 0;
-        let targetRotationY = 0;
-        let mouseX = 0;
-        let mouseY = 0;
-
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('scene-container').appendChild(renderer.domElement);
-
-            const geometry = new THREE.BoxGeometry(3, 3, 3);
-            const textureLoader = new THREE.TextureLoader();
-            const texture = textureLoader.load('steel.JPG');
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            cube = new THREE.Mesh(geometry, material);
-            scene.add(cube);
-
-            camera.position.z = 5;
-
-            document.addEventListener('mousemove', onDocumentMouseMove, false);
-            window.addEventListener('resize', onWindowResize, false);
-
-            animate();
-        }
-
-        function onDocumentMouseMove(event) {
-            mouseX = (event.clientX - window.innerWidth / 2) / 100;
-            mouseY = (event.clientY - window.innerHeight / 2) / 100;
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            targetRotationY += (mouseX - targetRotationY) * 0.05;
-            targetRotationX += (mouseY - targetRotationX) * 0.05;
-
-            cube.rotation.y += 0.5 * (targetRotationY - cube.rotation.y);
-            cube.rotation.x += 0.5 * (targetRotationX - cube.rotation.x);
-
-            renderer.render(scene, camera);
-        }
-
-        init();
     </script>
 </body>
 </html>
