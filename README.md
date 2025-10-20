@@ -6,7 +6,7 @@ to-do list:
 - improve bible reader []
 - new page ideas [x]
 - debloat [x]
-- create an images bin []
-- add ebird embeds []
-
+- create an images bin [x]
+- add ebird embeds [x]
+- birdle []
 
