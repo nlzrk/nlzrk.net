@@ -1,5 +1,7 @@
 # nlzrk.net
 
+https://nlzrk.net/
+
 to-do list:
 - make unified styles.css file [x]
 - "fix" mobile scaling [x]
