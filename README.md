@@ -6,5 +6,6 @@ to-do list:
 - improve bible reader []
 - better video handling [~]
 - new page ideas []
+- debloat [x]
 
 
