@@ -8,4 +8,5 @@ to-do list:
 - resume/portfolio page []
 - Phansite? []
 - DiffEq daily []
+- efi page []
 
