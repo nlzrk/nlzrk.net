@@ -3,12 +3,9 @@
 https://nlzrk.net/
 
 to-do list:
-- make unified styles.css file [x]
-- "fix" mobile scaling [x]
 - improve bible reader []
-- new page ideas [x]
-- debloat [x]
-- create an images bin [x]
-- add ebird embeds [x]
-- birdle []
+- allocate images bin []
+- resume/portfolio page []
+- Phansite? []
+- DiffEq daily []
 
