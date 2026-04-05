@@ -27,10 +27,23 @@
             height: 100vh;
         }
         .menu-wrapper {
-            background: rgba(0, 0, 0, 0.7);
-            border: 3px solid white;
-            padding: 20px;
+            background: linear-gradient(135deg, #555 0%, #ccc 20%, #fff 45%, #bbb 65%, #666 85%, #ccc 100%);
+            padding: 23px;
             margin-top: 20px;
+            position: relative;
+            border-radius: 18px;
+        }
+        .menu-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            background: #0d0d0d;
+            border-radius: 15px;
+            z-index: 0;
+        }
+        .menu-wrapper > * {
+            position: relative;
+            z-index: 1;
         }
         a {
             color: white;
