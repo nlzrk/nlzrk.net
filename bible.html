@@ -7,95 +7,667 @@
     <link rel="icon" type="image/png" href="images/birb.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+            height: 100%;
+        }
+        #scene-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+        }
 
-    <link rel="stylesheet" href="styles.css">
+        /* ── Toolbar ───────────────────────────────────────────── */
+        #toolbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.88);
+            border-bottom: 1px solid #2a2a2a;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        #toolbar a,
+        #toolbar select,
+        #toolbar button {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: white;
+            background: transparent;
+            border: 1px solid #444;
+            padding: 5px 10px;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        #toolbar a:hover,
+        #toolbar select:hover,
+        #toolbar button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #777;
+        }
+        #toolbar select {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        #toolbar select option {
+            background: #111;
+        }
+        .t-sep {
+            width: 1px;
+            height: 18px;
+            background: #333;
+            flex-shrink: 0;
+        }
+        #loading-msg {
+            font-size: 11px;
+            color: #666;
+            margin-left: 4px;
+        }
 
-  
+        /* ── Verse area ────────────────────────────────────────── */
+        #verses-area {
+            position: fixed;
+            top: 45px;
+            bottom: 0;
+            left: 0; right: 0;
+            overflow-y: auto;
+            padding: 24px 20px 60px;
+            box-sizing: border-box;
+        }
+        #verses-area::-webkit-scrollbar { width: 5px; }
+        #verses-area::-webkit-scrollbar-track { background: transparent; }
+        #verses-area::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+        #verses-wrap {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        #chapter-heading {
+            font-size: 11px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        /* ── Verses ────────────────────────────────────────────── */
+        .verse {
+            display: flex;
+            gap: 14px;
+            padding: 5px 8px;
+            margin-bottom: 2px;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.12s;
+        }
+        .verse:hover { background: rgba(255,255,255,0.04); }
+        .verse:hover .note-btn { opacity: 1; }
+
+        .verse-num {
+            font-size: 10px;
+            color: #444;
+            min-width: 22px;
+            text-align: right;
+            padding-top: 3px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+        .verse-body { flex: 1; min-width: 0; }
+        .verse-text {
+            font-size: 14px;
+            line-height: 1.75;
+            color: #ddd;
+        }
+        .verse-note-display {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+            padding: 5px 8px;
+            border-left: 2px solid #333;
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+        .note-btn {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 2px 6px;
+            position: absolute;
+            right: 2px;
+            top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            transition: opacity 0.1s, color 0.1s;
+        }
+        .note-btn:hover { color: #ccc; }
+        .has-note .verse-num::after {
+            content: '·';
+            display: block;
+            color: #666;
+            font-size: 14px;
+            line-height: 0;
+            margin-top: 6px;
+        }
+
+        /* highlight classes */
+        .hl-yellow { background: rgba(255, 220, 40, 0.14) !important; }
+        .hl-yellow .verse-text { color: #ffe48a; }
+        .hl-green  { background: rgba(80,  200,  90, 0.14) !important; }
+        .hl-green  .verse-text { color: #90e09a; }
+        .hl-blue   { background: rgba(80,  150, 255, 0.14) !important; }
+        .hl-blue   .verse-text { color: #88baff; }
+        .hl-pink   { background: rgba(255, 100, 155, 0.14) !important; }
+        .hl-pink   .verse-text { color: #ff9ec0; }
+
+        /* ── Note modal ────────────────────────────────────────── */
+        #note-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+        }
+        #note-modal.open { display: flex; }
+        #note-box {
+            background: #0e0e0e;
+            border: 1px solid #333;
+            padding: 20px;
+            width: 100%;
+            max-width: 460px;
+            margin: 20px;
+        }
+        #note-ref {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        #note-ta {
+            width: 100%;
+            min-height: 110px;
+            background: #181818;
+            border: 1px solid #333;
+            color: #ddd;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            padding: 10px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        #note-ta:focus { outline: none; border-color: #555; }
+        .note-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .note-actions button {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            padding: 5px 12px;
+            border: 1px solid #444;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+        }
+        .note-actions button:hover { background: rgba(255,255,255,0.08); }
+        #note-del {
+            margin-left: auto;
+            border-color: #552222 !important;
+            color: #aa5555 !important;
+        }
+        #note-del:hover { background: rgba(180,50,50,0.15) !important; }
+
+        /* ── NIV notice ────────────────────────────────────────── */
+        #niv-notice {
+            display: none;
+            padding: 60px 20px;
+            text-align: center;
+            color: #555;
+            font-size: 13px;
+            line-height: 2;
+        }
+        #niv-notice a { color: #777; text-decoration: underline; }
+
+        /* mobile: always show note btn */
+        @media (max-width: 600px) {
+            .note-btn { opacity: 0.4; }
+            #toolbar { gap: 6px; }
+        }
+    </style>
 </head>
 <body>
     <div id="scene-container"></div>
-    
-    <div class="content">
-        <h1>christ is king</h1>
-        <div class="menu-wrapper">
-            <a href="niv.txt">
-                <span class="link-title-wrapper">NIV</span>
-            </a><br>
-            <a href="kjv.txt">
-                <span class="link-title-wrapper">KJV</span>
-            </a><br>
-            <a href="esv.txt">
-                <span class="link-title-wrapper">ESV</span>
-            </a><br>
 
-      
-           
-       </div>
-    <a class="nav-item" href="index.html" title="Go to Home">
+    <div id="toolbar">
+        <a href="index.html">← home</a>
+        <div class="t-sep"></div>
+        <select id="sel-translation">
+            <option value="kjv">KJV</option>
+            <option value="esv">ESV</option>
+            <option value="niv">NIV</option>
+        </select>
+        <select id="sel-book"></select>
+        <select id="sel-chapter"></select>
+        <span id="loading-msg"></span>
+    </div>
 
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-        </svg>
-        
-    </a>
-</div>
+    <div id="verses-area">
+        <div id="verses-wrap">
+            <div id="chapter-heading"></div>
+            <div id="verses-list"></div>
+        </div>
+        <div id="niv-notice">
+            NIV is not available in the verse reader.<br>
+            <a href="niv.txt" target="_blank">open raw NIV text →</a>
+        </div>
+    </div>
 
+    <div id="note-modal">
+        <div id="note-box">
+            <div id="note-ref"></div>
+            <textarea id="note-ta" placeholder="write a note..."></textarea>
+            <div class="note-actions">
+                <button id="note-save">save</button>
+                <button id="note-cancel">cancel</button>
+                <button id="note-del">delete</button>
+            </div>
+        </div>
+    </div>
 
-
-    
     <script>
-        let scene, camera, renderer, cube;
-        let targetRotationX = 0;
-        let targetRotationY = 0;
-        let mouseX = 0;
-        let mouseY = 0;
+    // ── Three.js background ─────────────────────────────────────────────────────
+    (function () {
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(innerWidth, innerHeight);
+        document.getElementById('scene-container').appendChild(renderer.domElement);
 
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('scene-container').appendChild(renderer.domElement);
+        const cube = new THREE.Mesh(
+            new THREE.BoxGeometry(3, 3, 3),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('images/cross.PNG') })
+        );
+        scene.add(cube);
+        camera.position.z = 5;
 
-            const geometry = new THREE.BoxGeometry(3, 3, 3);
-            const textureLoader = new THREE.TextureLoader();
-            const texture = textureLoader.load('images/cross.PNG');
-            const material = new THREE.MeshBasicMaterial({ map: texture });
-            cube = new THREE.Mesh(geometry, material);
-            scene.add(cube);
-
-            camera.position.z = 5;
-
-            document.addEventListener('mousemove', onDocumentMouseMove, false);
-            window.addEventListener('resize', onWindowResize, false);
-
-            animate();
-        }
-
-        function onDocumentMouseMove(event) {
-            mouseX = (event.clientX - window.innerWidth / 2) / 100;
-            mouseY = (event.clientY - window.innerHeight / 2) / 100;
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        let tx = 0, ty = 0, mx = 0, my = 0;
+        document.addEventListener('mousemove', e => {
+            mx = (e.clientX - innerWidth / 2) / 100;
+            my = (e.clientY - innerHeight / 2) / 100;
+        });
+        window.addEventListener('resize', () => {
+            camera.aspect = innerWidth / innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
+            renderer.setSize(innerWidth, innerHeight);
+        });
+        (function animate() {
             requestAnimationFrame(animate);
-
-            targetRotationY += (mouseX - targetRotationY) * 0.05;
-            targetRotationX += (mouseY - targetRotationX) * 0.05;
-
-            cube.rotation.y += 0.5 * (targetRotationY - cube.rotation.y);
-            cube.rotation.x += 0.5 * (targetRotationX - cube.rotation.x);
-
+            ty += (mx - ty) * 0.05;
+            tx += (my - tx) * 0.05;
+            cube.rotation.y += 0.5 * (ty - cube.rotation.y);
+            cube.rotation.x += 0.5 * (tx - cube.rotation.x);
             renderer.render(scene, camera);
+        })();
+    })();
+
+    // ── Bible metadata ──────────────────────────────────────────────────────────
+    const BOOKS = [
+        'Genesis','Exodus','Leviticus','Numbers','Deuteronomy',
+        'Joshua','Judges','Ruth','1 Samuel','2 Samuel',
+        '1 Kings','2 Kings','1 Chronicles','2 Chronicles',
+        'Ezra','Nehemiah','Esther','Job','Psalm','Proverbs',
+        'Ecclesiastes','Song of Solomon','Isaiah','Jeremiah',
+        'Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos',
+        'Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah',
+        'Haggai','Zechariah','Malachi',
+        'Matthew','Mark','Luke','John','Acts','Romans',
+        '1 Corinthians','2 Corinthians','Galatians','Ephesians',
+        'Philippians','Colossians','1 Thessalonians','2 Thessalonians',
+        '1 Timothy','2 Timothy','Titus','Philemon','Hebrews',
+        'James','1 Peter','2 Peter','1 John','2 John','3 John',
+        'Jude','Revelation'
+    ];
+
+    const CHAPTERS = {
+        'Genesis':50,'Exodus':40,'Leviticus':27,'Numbers':36,'Deuteronomy':34,
+        'Joshua':24,'Judges':21,'Ruth':4,'1 Samuel':31,'2 Samuel':24,
+        '1 Kings':22,'2 Kings':25,'1 Chronicles':29,'2 Chronicles':36,
+        'Ezra':10,'Nehemiah':13,'Esther':10,'Job':42,'Psalm':150,
+        'Proverbs':31,'Ecclesiastes':12,'Song of Solomon':8,'Isaiah':66,
+        'Jeremiah':52,'Lamentations':5,'Ezekiel':48,'Daniel':12,
+        'Hosea':14,'Joel':3,'Amos':9,'Obadiah':1,'Jonah':4,'Micah':7,
+        'Nahum':3,'Habakkuk':3,'Zephaniah':3,'Haggai':2,'Zechariah':14,
+        'Malachi':4,'Matthew':28,'Mark':16,'Luke':24,'John':21,'Acts':28,
+        'Romans':16,'1 Corinthians':16,'2 Corinthians':13,'Galatians':6,
+        'Ephesians':6,'Philippians':4,'Colossians':4,'1 Thessalonians':5,
+        '2 Thessalonians':3,'1 Timothy':6,'2 Timothy':4,'Titus':3,
+        'Philemon':1,'Hebrews':13,'James':5,'1 Peter':5,'2 Peter':3,
+        '1 John':5,'2 John':1,'3 John':1,'Jude':1,'Revelation':22
+    };
+
+    const ESV_MAP = {
+        'Gen':'Genesis','Exo':'Exodus','Lev':'Leviticus','Num':'Numbers',
+        'Deu':'Deuteronomy','Jos':'Joshua','Jdg':'Judges','Rut':'Ruth',
+        '1Sa':'1 Samuel','2Sa':'2 Samuel','1Ki':'1 Kings','2Ki':'2 Kings',
+        '1Ch':'1 Chronicles','2Ch':'2 Chronicles','Ezr':'Ezra','Neh':'Nehemiah',
+        'Est':'Esther','Job':'Job','Psa':'Psalm','Pro':'Proverbs',
+        'Ecc':'Ecclesiastes','Sol':'Song of Solomon','Isa':'Isaiah',
+        'Jer':'Jeremiah','Lam':'Lamentations','Eze':'Ezekiel','Dan':'Daniel',
+        'Hos':'Hosea','Joe':'Joel','Amo':'Amos','Oba':'Obadiah','Jon':'Jonah',
+        'Mic':'Micah','Nah':'Nahum','Hab':'Habakkuk','Zep':'Zephaniah',
+        'Hag':'Haggai','Zec':'Zechariah','Mal':'Malachi','Mat':'Matthew',
+        'Mar':'Mark','Luk':'Luke','Joh':'John','Act':'Acts','Rom':'Romans',
+        '1Co':'1 Corinthians','2Co':'2 Corinthians','Gal':'Galatians',
+        'Eph':'Ephesians','Phi':'Philippians','Col':'Colossians',
+        '1Th':'1 Thessalonians','2Th':'2 Thessalonians','1Ti':'1 Timothy',
+        '2Ti':'2 Timothy','Tit':'Titus','Phm':'Philemon','Heb':'Hebrews',
+        'Jam':'James','1Pe':'1 Peter','2Pe':'2 Peter','1Jo':'1 John',
+        '2Jo':'2 John','3Jo':'3 John','Jud':'Jude','Rev':'Revelation'
+    };
+    const ESV_ABBREVS = new Set(Object.keys(ESV_MAP));
+
+    // ── Parsers ─────────────────────────────────────────────────────────────────
+    const cache = {};
+
+    async function loadTranslation(t) {
+        if (cache[t]) return cache[t];
+        setLoading('loading...');
+        const text = await fetch(t + '.txt').then(r => r.text());
+        const verses = t === 'kjv' ? parseKJV(text) : parseESV(text);
+        cache[t] = verses;
+        setLoading('');
+        return verses;
+    }
+
+    function parseKJV(text) {
+        const verses = {};
+        for (const line of text.split('\n')) {
+            const tab = line.indexOf('\t');
+            if (tab === -1) continue;
+            const ref = line.slice(0, tab);
+            const body = line.slice(tab + 1).trim();
+            if (!body) continue;
+            const ci = ref.lastIndexOf(':');
+            const si = ref.lastIndexOf(' ', ci);
+            if (ci === -1 || si === -1) continue;
+            const book = ref.slice(0, si);
+            const ch = parseInt(ref.slice(si + 1, ci));
+            const v  = parseInt(ref.slice(ci + 1));
+            if (book && !isNaN(ch) && !isNaN(v))
+                verses[`${book}:${ch}:${v}`] = body;
+        }
+        return verses;
+    }
+
+    function parseESV(text) {
+        const verses = {};
+        let key = null, body = '';
+        for (const raw of text.split('\n')) {
+            const line = raw.trim();
+            if (!line) continue;
+            const sp = line.indexOf(' ');
+            if (sp > 0) {
+                const abbr = line.slice(0, sp);
+                if (ESV_ABBREVS.has(abbr)) {
+                    const rest = line.slice(sp + 1);
+                    const ci = rest.indexOf(':');
+                    if (ci > 0) {
+                        const after = rest.slice(ci + 1);
+                        const ws = after.search(/\s/);
+                        const v = parseInt(ws === -1 ? after : after.slice(0, ws));
+                        const ch = parseInt(rest.slice(0, ci));
+                        if (!isNaN(ch) && !isNaN(v)) {
+                            if (key) verses[key] = body.trim();
+                            key = `${ESV_MAP[abbr]}:${ch}:${v}`;
+                            body = ws === -1 ? '' : after.slice(ws + 1);
+                            continue;
+                        }
+                    }
+                }
+            }
+            if (key !== null) body += ' ' + line;
+        }
+        if (key) verses[key] = body.trim();
+        return verses;
+    }
+
+    // ── Storage ─────────────────────────────────────────────────────────────────
+    const HL_CYCLE = [null, 'yellow', 'green', 'blue', 'pink'];
+
+    const store = {
+        highlights() { return JSON.parse(localStorage.getItem('bible_hl') || '{}'); },
+        notes()      { return JSON.parse(localStorage.getItem('bible_notes') || '{}'); },
+        pos()        { return JSON.parse(localStorage.getItem('bible_pos') || '{"t":"kjv","b":"Genesis","c":1}'); },
+        setHL(key, color) {
+            const h = this.highlights();
+            color ? (h[key] = color) : delete h[key];
+            localStorage.setItem('bible_hl', JSON.stringify(h));
+        },
+        setNote(key, text) {
+            const n = this.notes();
+            text.trim() ? (n[key] = text.trim()) : delete n[key];
+            localStorage.setItem('bible_notes', JSON.stringify(n));
+        },
+        savePos(t, b, c) {
+            localStorage.setItem('bible_pos', JSON.stringify({ t, b, c }));
+        }
+    };
+
+    // ── Render ──────────────────────────────────────────────────────────────────
+    function renderChapter(verses, book, chapter) {
+        const highlights = store.highlights();
+        const notes = store.notes();
+        const list = document.getElementById('verses-list');
+        document.getElementById('chapter-heading').textContent = `${book}  ·  ${chapter}`;
+        list.innerHTML = '';
+
+        let v = 1, found = false;
+        while (true) {
+            const key = `${book}:${chapter}:${v}`;
+            const text = verses[key];
+            if (!text) { if (v > 200) break; v++; continue; }
+            found = true;
+
+            const color = highlights[key] || null;
+            const note  = notes[key] || '';
+
+            const div = document.createElement('div');
+            div.className = 'verse' + (color ? ` hl-${color}` : '') + (note ? ' has-note' : '');
+            div.dataset.key   = key;
+            div.dataset.color = color || '';
+
+            const noteHtml = note
+                ? `<div class="verse-note-display">${esc(note)}</div>`
+                : '';
+
+            div.innerHTML = `
+                <span class="verse-num">${v}</span>
+                <div class="verse-body">
+                    <span class="verse-text">${esc(text)}</span>
+                    ${noteHtml}
+                </div>
+                <button class="note-btn" title="note">✎</button>
+            `;
+
+            div.addEventListener('click', e => {
+                if (e.target.classList.contains('note-btn')) return;
+                cycleHL(div, key);
+            });
+            div.querySelector('.note-btn').addEventListener('click', e => {
+                e.stopPropagation();
+                openNote(key, `${book} ${chapter}:${v}`);
+            });
+
+            list.appendChild(div);
+            v++;
         }
 
-        init();
+        if (!found)
+            list.innerHTML = '<div style="color:#444;font-size:13px">no verses found</div>';
+    }
+
+    function cycleHL(div, key) {
+        const cur = div.dataset.color || null;
+        const next = HL_CYCLE[(HL_CYCLE.indexOf(cur) + 1) % HL_CYCLE.length];
+        div.classList.remove('hl-yellow','hl-green','hl-blue','hl-pink');
+        if (next) div.classList.add(`hl-${next}`);
+        div.dataset.color = next || '';
+        store.setHL(key, next);
+    }
+
+    function esc(t) {
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Note modal ──────────────────────────────────────────────────────────────
+    let activeKey = null;
+
+    function openNote(key, label) {
+        activeKey = key;
+        document.getElementById('note-ref').textContent = label;
+        document.getElementById('note-ta').value = store.notes()[key] || '';
+        document.getElementById('note-modal').classList.add('open');
+        document.getElementById('note-ta').focus();
+    }
+
+    function closeNote() {
+        document.getElementById('note-modal').classList.remove('open');
+        activeKey = null;
+    }
+
+    function commitNote(text) {
+        if (!activeKey) return;
+        store.setNote(activeKey, text);
+        const div = document.querySelector(`.verse[data-key="${activeKey}"]`);
+        if (div) {
+            const body = div.querySelector('.verse-body');
+            let nd = body.querySelector('.verse-note-display');
+            if (text.trim()) {
+                if (!nd) { nd = document.createElement('div'); nd.className = 'verse-note-display'; body.appendChild(nd); }
+                nd.textContent = text.trim();
+                div.classList.add('has-note');
+            } else {
+                nd && nd.remove();
+                div.classList.remove('has-note');
+            }
+        }
+        closeNote();
+    }
+
+    document.getElementById('note-save').addEventListener('click', () => {
+        commitNote(document.getElementById('note-ta').value);
+    });
+    document.getElementById('note-cancel').addEventListener('click', closeNote);
+    document.getElementById('note-del').addEventListener('click', () => commitNote(''));
+    document.getElementById('note-ta').addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') commitNote(document.getElementById('note-ta').value);
+        if (e.key === 'Escape') closeNote();
+    });
+    document.getElementById('note-modal').addEventListener('click', e => {
+        if (e.target === document.getElementById('note-modal')) closeNote();
+    });
+
+    // ── Navigation ──────────────────────────────────────────────────────────────
+    let curT = 'kjv', curB = 'Genesis', curC = 1;
+
+    function setLoading(msg) {
+        document.getElementById('loading-msg').textContent = msg;
+    }
+
+    async function navigate(t, b, c) {
+        curT = t; curB = b; curC = c;
+        const wrap = document.getElementById('verses-wrap');
+        const niv  = document.getElementById('niv-notice');
+
+        if (t === 'niv') {
+            wrap.style.display = 'none';
+            niv.style.display  = 'block';
+            return;
+        }
+        wrap.style.display = 'block';
+        niv.style.display  = 'none';
+
+        const verses = await loadTranslation(t);
+        renderChapter(verses, b, c);
+        document.getElementById('verses-area').scrollTop = 0;
+        store.savePos(t, b, c);
+    }
+
+    function populateBooks() {
+        const sel = document.getElementById('sel-book');
+        for (const b of BOOKS) {
+            const o = document.createElement('option');
+            o.value = o.textContent = b;
+            sel.appendChild(o);
+        }
+    }
+
+    function populateChapters(book, selected) {
+        const sel = document.getElementById('sel-chapter');
+        sel.innerHTML = '';
+        for (let i = 1; i <= (CHAPTERS[book] || 1); i++) {
+            const o = document.createElement('option');
+            o.value = o.textContent = i;
+            sel.appendChild(o);
+        }
+        sel.value = selected;
+    }
+
+    // keyboard: left/right arrow to navigate chapters
+    document.addEventListener('keydown', e => {
+        if (document.getElementById('note-modal').classList.contains('open')) return;
+        if (e.key === 'ArrowRight') {
+            const max = CHAPTERS[curB] || 1;
+            if (curC < max) {
+                curC++;
+                document.getElementById('sel-chapter').value = curC;
+                navigate(curT, curB, curC);
+            }
+        } else if (e.key === 'ArrowLeft') {
+            if (curC > 1) {
+                curC--;
+                document.getElementById('sel-chapter').value = curC;
+                navigate(curT, curB, curC);
+            }
+        }
+    });
+
+    document.getElementById('sel-translation').addEventListener('change', function () {
+        navigate(this.value, curB, curC);
+    });
+    document.getElementById('sel-book').addEventListener('change', function () {
+        populateChapters(this.value, 1);
+        navigate(curT, this.value, 1);
+    });
+    document.getElementById('sel-chapter').addEventListener('change', function () {
+        navigate(curT, curB, parseInt(this.value));
+    });
+
+    // ── Boot ────────────────────────────────────────────────────────────────────
+    (function boot() {
+        populateBooks();
+        const pos = store.pos();
+        curT = pos.t; curB = pos.b; curC = pos.c;
+        document.getElementById('sel-translation').value = curT;
+        document.getElementById('sel-book').value = curB;
+        populateChapters(curB, curC);
+        navigate(curT, curB, curC);
+    })();
     </script>
 </body>
 </html>
@@ -103,4 +675,3 @@
 <!--
   If youre this far I feel bad for u - Nolzark dev
  -->
-
