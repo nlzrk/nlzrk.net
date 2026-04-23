@@ -90,6 +90,8 @@
         #verses-wrap {
             max-width: 680px;
             margin: 0 auto;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 20px 24px 32px;
         }
         #chapter-heading {
             font-size: 11px;
@@ -296,6 +298,7 @@
         const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(innerWidth, innerHeight);
+        renderer.domElement.style.opacity = '0.35';
         document.getElementById('scene-container').appendChild(renderer.domElement);
 
         const cube = new THREE.Mesh(
