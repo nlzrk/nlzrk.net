@@ -3,7 +3,7 @@
 https://nlzrk.net/
 
 to-do list:
-- improve bible reader []
+- improve bible reader [x]
 - allocate images bin [x]
 - resume/portfolio page []
 - Phansite? []
