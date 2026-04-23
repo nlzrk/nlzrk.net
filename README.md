@@ -4,7 +4,7 @@ https://nlzrk.net/
 
 to-do list:
 - improve bible reader []
-- allocate images bin []
+- allocate images bin [x]
 - resume/portfolio page []
 - Phansite? []
 - DiffEq daily []
