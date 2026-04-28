@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>prior</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: #000;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+body { padding: 2.5rem 1.25rem 5rem; max-width: 580px; margin: 0 auto; }
+
+.chrome {
+  background: linear-gradient(180deg, #fff 0%, #aaa 40%, #fff 60%, #888 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+h1 { font-size: 2rem; margin-bottom: 0.2rem; }
+.subtitle { color: #555; font-size: 0.75rem; margin-bottom: 2.5rem; }
+
+.card {
+  background: #0a0a0a;
+  border-radius: 12px;
+  border: 1px solid #222;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.card-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.field { margin-bottom: 0.75rem; }
+.field:last-child { margin-bottom: 0; }
+.field label { display: block; font-size: 0.65rem; color: #555; margin-bottom: 4px; }
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.625rem;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus { border-color: #555; }
+.field input::placeholder,
+.field textarea::placeholder { color: #2e2e2e; }
+.field textarea { resize: vertical; min-height: 75px; }
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.625rem center;
+  padding-right: 1.75rem;
+  cursor: pointer;
+}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+
+.entry {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 0.875rem;
+  margin-bottom: 0.625rem;
+}
+.entry-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+.entry-num { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #444; }
+.remove-btn {
+  background: none; border: none; color: #333;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; cursor: pointer; padding: 0;
+}
+.remove-btn:hover { color: #888; }
+.sub-label {
+  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: #333;
+  margin: 0.75rem 0 0.5rem; padding-top: 0.625rem; border-top: 1px solid #1a1a1a;
+}
+.add-btn {
+  background: none; border: 1px solid #222; border-radius: 6px; color: #444;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; cursor: pointer;
+  padding: 0.4rem 0.75rem; margin-top: 0.625rem; transition: border-color 0.15s, color 0.15s;
+}
+.add-btn:hover { border-color: #555; color: #888; }
+
+.generate-btn {
+  display: block; width: 100%;
+  background: linear-gradient(180deg, #e0e0e0 0%, #888 40%, #ccc 60%, #666 100%);
+  border: none; border-radius: 8px; color: #000;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 700;
+  padding: 0.875rem; cursor: pointer; margin-top: 1.5rem; letter-spacing: 0.05em;
+}
+.generate-btn:active { filter: brightness(0.85); }
+
+#output { display: none; margin-top: 1.25rem; }
+.output-text {
+  background: #0a0a0a; border: 1px solid #222; border-radius: 12px;
+  padding: 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+  line-height: 1.8; color: #ccc; white-space: pre-wrap; word-break: break-word; margin-bottom: 0.75rem;
+}
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+.out-btn {
+  padding: 0.625rem; border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem; cursor: pointer; text-align: center; letter-spacing: 0.04em;
+  border: 1px solid #2a2a2a; background: #111; color: #555; transition: border-color 0.15s, color 0.15s;
+}
+.out-btn:hover { border-color: #555; color: #888; }
+.out-btn.primary {
+  background: linear-gradient(180deg, #e0e0e0 0%, #888 40%, #ccc 60%, #666 100%);
+  border: none; color: #000; font-weight: 700;
+}
+.out-btn.primary:active { filter: brightness(0.85); }
+</style>
+</head>
+<body>
+
+<h1 class="chrome">prior</h1>
+<p class="subtitle">hike safety message generator</p>
+
+<div class="card">
+  <div class="card-label">trail</div>
+  <div class="field"><label>trail name</label><input type="text" id="trailName" placeholder="blue mountains grand canyon track"/></div>
+  <div class="field"><label>location</label><input type="text" id="trailLocation" placeholder="blackheath, nsw"/></div>
+  <div class="field"><label>maps link (optional)</label><input type="url" id="mapsLink" placeholder="https://maps.google.com/..."/></div>
+  <div class="field"><label>difficulty</label>
+    <select id="difficulty">
+      <option value="easy">easy</option>
+      <option value="moderate" selected>moderate</option>
+      <option value="hard">hard</option>
+      <option value="very hard">very hard</option>
+    </select>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-label">timing</div>
+  <div class="row2">
+    <div class="field"><label>departure</label><input type="datetime-local" id="departTime"/></div>
+    <div class="field"><label>expected return</label><input type="datetime-local" id="returnTime"/></div>
+  </div>
+  <div class="row3" style="margin-top:0.625rem">
+    <div class="field"><label>distance (km)</label><input type="number" id="distance" placeholder="12" min="0" step="0.1"/></div>
+    <div class="field"><label>hike time (hr)</label><input type="number" id="baseDuration" placeholder="4" min="0" step="0.5"/></div>
+    <div class="field"><label>buffer (hr)</label><input type="number" id="bufferTime" placeholder="1.5" min="0" step="0.5"/></div>
+  </div>
+  <div class="field" style="margin-top:0.625rem"><label>trailhead / meeting point</label><input type="text" id="meetPoint" placeholder="popes glen carpark, evans lookout rd"/></div>
+</div>
+
+<div class="card">
+  <div class="card-label">hikers</div>
+  <div id="hikerList"></div>
+  <button class="add-btn" onclick="addHiker()">+ add hiker</button>
+</div>
+
+<div class="card">
+  <div class="card-label">vehicles</div>
+  <div id="carList"></div>
+  <button class="add-btn" onclick="addCar()">+ add vehicle</button>
+</div>
+
+<div class="card">
+  <div class="card-label">notes</div>
+  <div class="field"><textarea id="notes" placeholder="no mobile coverage on trail, carry 2l water each, helmets required"></textarea></div>
+</div>
+
+<button class="generate-btn" onclick="generate()">generate message</button>
+
+<div id="output">
+  <div class="output-text" id="outputText"></div>
+  <div class="btn-row">
+    <button class="out-btn" onclick="copyMsg()">copy text</button>
+    <button class="out-btn primary" onclick="shareMsg()">share &rarr;</button>
+  </div>
+</div>
+
+<script>
+let hikers = [], cars = [], hId = 0, cId = 0;
+
+function addHiker() {
+  hikers.push({ id: hId++, name:'', phone:'', eName:'', ePhone:'', eRel:'' });
+  renderHikers();
+}
+function removeHiker(id) {
+  hikers = hikers.filter(h => h.id !== id);
+  renderHikers();
+}
+function uh(id, f, v) { const h = hikers.find(x => x.id===id); if(h) h[f]=v; }
+function renderHikers() {
+  document.getElementById('hikerList').innerHTML = hikers.map((h,i) => `
+    <div class="entry">
+      <div class="entry-head">
+        <span class="entry-num">hiker ${i+1}</span>
+        <button class="remove-btn" onclick="removeHiker(${h.id})">remove</button>
+      </div>
+      <div class="row2">
+        <div class="field"><label>name</label><input type="text" value="${esc(h.name)}" placeholder="full name" oninput="uh(${h.id},'name',this.value)"/></div>
+        <div class="field"><label>phone</label><input type="tel" value="${esc(h.phone)}" placeholder="+61 4xx xxx xxx" oninput="uh(${h.id},'phone',this.value)"/></div>
+      </div>
+      <div class="sub-label">emergency contact</div>
+      <div class="row3">
+        <div class="field"><label>name</label><input type="text" value="${esc(h.eName)}" placeholder="mum" oninput="uh(${h.id},'eName',this.value)"/></div>
+        <div class="field"><label>relation</label><input type="text" value="${esc(h.eRel)}" placeholder="mother" oninput="uh(${h.id},'eRel',this.value)"/></div>
+        <div class="field"><label>phone</label><input type="tel" value="${esc(h.ePhone)}" placeholder="+61 4xx xxx xxx" oninput="uh(${h.id},'ePhone',this.value)"/></div>
+      </div>
+    </div>`).join('');
+}
+
+function addCar() {
+  cars.push({ id: cId++, rego:'', make:'', model:'', colour:'', driver:'' });
+  renderCars();
+}
+function removeCar(id) {
+  cars = cars.filter(c => c.id !== id);
+  renderCars();
+}
+function uc(id, f, v) { const c = cars.find(x => x.id===id); if(c) c[f]=v; }
+function renderCars() {
+  document.getElementById('carList').innerHTML = cars.map((c,i) => `
+    <div class="entry">
+      <div class="entry-head">
+        <span class="entry-num">vehicle ${i+1}</span>
+        <button class="remove-btn" onclick="removeCar(${c.id})">remove</button>
+      </div>
+      <div class="row2">
+        <div class="field"><label>registration</label><input type="text" value="${esc(c.rego)}" placeholder="abc123 nsw" oninput="uc(${c.id},'rego',this.value)"/></div>
+        <div class="field"><label>driver</label><input type="text" value="${esc(c.driver)}" placeholder="driver name" oninput="uc(${c.id},'driver',this.value)"/></div>
+      </div>
+      <div class="row3" style="margin-top:0.5rem">
+        <div class="field"><label>make</label><input type="text" value="${esc(c.make)}" placeholder="toyota" oninput="uc(${c.id},'make',this.value)"/></div>
+        <div class="field"><label>model</label><input type="text" value="${esc(c.model)}" placeholder="hilux" oninput="uc(${c.id},'model',this.value)"/></div>
+        <div class="field"><label>colour</label><input type="text" value="${esc(c.colour)}" placeholder="white" oninput="uc(${c.id},'colour',this.value)"/></div>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s) { return (s||'').replace(/"/g,'&quot;'); }
+
+function fmtDT(val) {
+  if (!val) return 'tbd';
+  const d = new Date(val);
+  return d.toLocaleString('en-AU', { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }).toLowerCase();
+}
+
+function generate() {
+  const trail = document.getElementById('trailName').value.trim();
+  const loc   = document.getElementById('trailLocation').value.trim();
+  const maps  = document.getElementById('mapsLink').value.trim();
+  const dep   = fmtDT(document.getElementById('departTime').value);
+  const ret   = fmtDT(document.getElementById('returnTime').value);
+  const dist  = document.getElementById('distance').value;
+  const base  = parseFloat(document.getElementById('baseDuration').value) || 0;
+  const buf   = parseFloat(document.getElementById('bufferTime').value) || 0;
+  const diff  = document.getElementById('difficulty').value;
+  const meet  = document.getElementById('meetPoint').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+  const total = base + buf;
+
+  let m = `HIKE SAFETY NOTICE\n${'—'.repeat(28)}\n\n`;
+  m += `trail: ${trail||'n/a'}\nlocation: ${loc||'n/a'}\n`;
+  if (maps) m += `map: ${maps}\n`;
+  m += `difficulty: ${diff}\n`;
+  if (dist) m += `distance: ${dist} km\n`;
+  m += `\ntiming\ndeparture: ${dep}\nexpected return: ${ret}\n`;
+  if (base||buf) {
+    m += `duration: ${base}hr hike`;
+    if (buf) m += ` + ${buf}hr buffer = ${total}hr total`;
+    m += `\n`;
+  }
+  if (meet) m += `trailhead: ${meet}\n`;
+
+  if (hikers.length) {
+    m += `\nhikers (${hikers.length})\n`;
+    hikers.forEach((h,i) => {
+      m += `${i+1}. ${h.name||'unknown'} — ${h.phone||'no number'}\n`;
+      if (h.eName||h.ePhone) {
+        const rel = h.eRel ? ` (${h.eRel})` : '';
+        m += `   emergency: ${h.eName||''}${rel} ${h.ePhone||''}\n`;
+      }
+    });
+  }
+
+  if (cars.length) {
+    m += `\nvehicles\n`;
+    cars.forEach((c,i) => {
+      const desc = [c.colour, c.make, c.model].filter(Boolean).join(' ');
+      m += `${i+1}. ${c.rego||'no rego'}${desc?' — '+desc:''}${c.driver?' ('+c.driver+')':''}\n`;
+    });
+  }
+
+  if (notes) m += `\nnotes\n${notes}\n`;
+  m += `\n${'—'.repeat(28)}\nif no contact by ${ret}, please call 000 or ses 132 500.`;
+
+  window._msg = m;
+  document.getElementById('outputText').textContent = m;
+  document.getElementById('output').style.display = 'block';
+  document.getElementById('output').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function shareMsg() {
+  if (!window._msg) return;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'hike safety notice', text: window._msg }); }
+    catch(e) { if (e.name !== 'AbortError') fallbackSMS(); }
+  } else { fallbackSMS(); }
+}
+function fallbackSMS() {
+  window.location.href = 'sms:?&body=' + encodeURIComponent(window._msg);
+}
+async function copyMsg() {
+  if (!window._msg) return;
+  try {
+    await navigator.clipboard.writeText(window._msg);
+    const btn = document.querySelector('.out-btn:not(.primary)');
+    btn.textContent = 'copied';
+    setTimeout(() => btn.textContent = 'copy text', 1800);
+  } catch(e) { alert('copy failed — long press the text instead.'); }
+}
+
+addHiker();
+addCar();
+</script>
+</body>
+</html>
